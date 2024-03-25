@@ -41,6 +41,7 @@
     <tr>
         <th>Player Name</th>
         <th>Dividend</th>
+        <th>Shares</th>
         <th>RailRoad</th>
         <th>Action</th>
     </tr>
@@ -92,6 +93,9 @@
             const dividendCell = document.createElement('td');
             dividendCell.id = `dividend_${players[i].playerName}`;
             dividendCell.textContent = '';
+            const sharesCell = document.createElement('td');
+            sharesCell.id = `shares_${players[i].playerName}`
+            sharesCell.textContent = '';
             const railRoadIdCell = document.createElement('td');
             const railRoadSelect = document.createElement('select');
             railRoadSelect.id = `rail_road_select_${players[i].playerName}`
@@ -118,6 +122,7 @@
             actionCell.appendChild(buyButton);
             row.appendChild(playerNameCell);
             row.appendChild(dividendCell);
+            row.append(sharesCell);
             row.appendChild(railRoadIdCell);
             row.appendChild(actionCell);
             playerTableBody.appendChild(row);
@@ -134,11 +139,16 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(railRoadId)
-        })
-            .catch(error => {
-                console.error('Error adding railroad share:', error);
-            });
-        // Implement the functionality to buy railroads here
+        }).then(() => {
+            const sharesElement = document.getElementById(`shares_${playerName}`);
+            if (sharesElement.textContent.length > 0) {
+                sharesElement.textContent += ', ' + railRoad.options[railRoad.selectedIndex].textContent;
+            } else {
+                sharesElement.textContent = railRoad.options[railRoad.selectedIndex].textContent;
+            }
+        }).catch(error => {
+            console.error('Error adding railroad share:', error);
+        });
     }
 
     // Fetch players when the page loads
