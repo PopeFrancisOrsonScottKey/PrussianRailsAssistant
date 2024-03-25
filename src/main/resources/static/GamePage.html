@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailRoad Information</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .color-block {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            border: 1px solid #999;
+            margin-right: 5px;
+        }
+
+        .new-connections {
+            width: 50px; /* Adjust the width as needed */
+            margin-right: 5px; /* Adjust the spacing between the number input and the button */
+        }
+    </style>
+</head>
+<body>
+<h1>Players</h1>
+<table id="player-table">
+    <thead>
+    <tr>
+        <th>Player Name</th>
+        <th>Dividend</th>
+        <th>RailRoad</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="player-list"></tbody>
+</table>
+<br>
+<h1>RailRoad Information</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Color</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Value</th>
+        <th>New Connections</th>
+        <th>Connect</th>
+    </tr>
+    </thead>
+    <tbody id="rail-roads">
+    <!-- Insert table rows dynamically using JavaScript -->
+    </tbody>
+</table>
+
+<script>
+    function fetchPlayers() {
+        fetch('/players')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderPlayerList(data);
+            })
+            .catch(error => {
+                console.error('Error fetching players:', error);
+            });
+    }
+
+    function renderPlayerList(players) {
+        const playerTableBody = document.getElementById('player-list');
+        playerTableBody.innerHTML = '';
+        for (let i = 0; i < players.length; i++) {
+            const row = document.createElement('tr');
+            const playerNameCell = document.createElement('td');
+            playerNameCell.textContent = players[i].playerName;
+            const dividendCell = document.createElement('td');
+            dividendCell.id = `dividend_${players[i].playerName}`;
+            dividendCell.textContent = '';
+            const railRoadIdCell = document.createElement('td');
+            const railRoadSelect = document.createElement('select');
+            railRoadSelect.id = `rail_road_select_${players[i].playerName}`
+            fetch('/rail-roads')
+                .then(response => response.json())
+                .then(data => {
+                    data = data.sort((a, b) => a.id - b.id);
+                    for (let i = 0; i < data.length; i++) {
+                        const option = document.createElement('option');
+                        option.value = data[i].name;
+                        option.textContent = data[i].name;
+                        option.id = `railRoadOption_${data[i].id}`
+                        railRoadSelect.appendChild(option);
+                    }
+                })
+                .catch(error => {
+                    console.log("Error when fetching railroads: " + error);
+                });
+            railRoadIdCell.appendChild(railRoadSelect);
+            const actionCell = document.createElement('td');
+            const buyButton = document.createElement('button');
+            buyButton.textContent = 'Buy';
+            buyButton.onclick = () => buyRailroad(players[i].playerName, document.getElementById(`rail_road_select_${players[i].playerName}`));
+            actionCell.appendChild(buyButton);
+            row.appendChild(playerNameCell);
+            row.appendChild(dividendCell);
+            row.appendChild(railRoadIdCell);
+            row.appendChild(actionCell);
+            playerTableBody.appendChild(row);
+        }
+    }
+
+    function buyRailroad(playerName, railRoad) {
+        console.log(`Player ${playerName} wants to buy ${railRoad.options[railRoad.selectedIndex].value} railroad.`);
+        const railRoadElementId = railRoad.options[railRoad.selectedIndex].id;
+        const railRoadId = parseInt(railRoadElementId.split("_")[1]);
+        fetch(`/add-share?playerName=${playerName}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(railRoadId)
+        })
+            .catch(error => {
+                console.error('Error adding railroad share:', error);
+            });
+        // Implement the functionality to buy railroads here
+    }
+
+    // Fetch players when the page loads
+    fetchPlayers();
+
+    // Function to handle textbox changes
+    function updateRailRoadValue(railRoadId, value) {
+        fetch('/rail-road-value?railRoadId=' + railRoadId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(value)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                console.log('Value updated successfully');
+            })
+            .catch(error => {
+                console.error('Error updating value:', error);
+            });
+    }
+
+    function populateForm(data) {
+        data = data.sort((a, b) => a.id - b.id);
+        const tableBody = document.getElementById('rail-roads');
+        data.forEach(railRoad => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                        <td><div class="color-block" style="background-color: ${railRoad.color};"></div></td>
+                        <td>${railRoad.name}</td>
+                        <td>${railRoad.description}</td>
+                        <td><input type="text" name="railroad_${railRoad.id}" id="railroad_${railRoad.id}" value="${railRoad.value}" oninput="updateRailRoadValue(${railRoad.id}, this.value)"></td>
+                        <td><input type="number" class="new-connections" name="number_${railRoad.id}" id="number_${railRoad.id}" value="1"></td>
+                        <td><button onclick="connect(${railRoad.id}, document.getElementById('number_${railRoad.id}').value)">Connect</button></td>
+                    `;
+            tableBody.appendChild(row);
+            updateRailRoadValue(railRoad.id, railRoad.value);
+        });
+    }
+
+    function connect(railRoadId, newConnections) {
+        console.log("connecting " + railRoadId)
+        fetch(`/connect?railRoadId=${railRoadId}&numberOfNewConnections=${newConnections}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                for (let i = 0; i < data.length; i++) {
+                    let playerConnectScore = data[i];
+                    let playerNameElement = document.getElementById(`dividend_${playerConnectScore.playerName}`);
+                    playerNameElement.textContent = `$${playerConnectScore.payout}`
+                }
+            })
+            .catch(error => {
+                console.error('Error connecting:', error);
+            });
+    }
+
+    // Fetch data from the server
+    fetch('/rail-roads')
+        .then(response => response.json())
+        .then(populateForm)
+        .catch(error => console.error('Error fetching railroads:', error));
+</script>
+</body>
+</html>

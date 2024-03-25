@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Players</title>
+</head>
+<body>
+<h1>Setup Players</h1>
+
+<div id="player-form">
+    <label>Player Name</label>
+    <input type="text" id="player-name" placeholder="Enter player name">
+    <button onclick="addPlayer()">Add Player</button>
+    <button onclick="setupPlayers()">Setup Players</button>
+</div>
+
+<ul id="player-list"></ul>
+
+<script>
+    const playerNames = [];
+
+    function addPlayer() {
+        const playerNameInput = document.getElementById('player-name');
+        const playerName = playerNameInput.value.trim();
+
+        if (playerName) {
+            playerNames.push(playerName);
+            playerNameInput.value = '';
+            renderPlayerList();
+        }
+    }
+
+    function renderPlayerList() {
+        const playerListElement = document.getElementById('player-list');
+        playerListElement.innerHTML = '';
+        playerNames.forEach(playerName => {
+            const listItem = document.createElement('li');
+            listItem.textContent = playerName;
+            playerListElement.appendChild(listItem);
+        });
+    }
+
+    function setupPlayers() {
+        if (playerNames.length === 0) {
+            alert('Please add at least one player.');
+            return;
+        }
+
+        fetch('/players', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(playerNames)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                console.log('Players setup successful');
+                window.location.href = '/GamePage.html';
+            })
+            .catch(error => {
+                console.error('Error setting up players:', error);
+            });
+    }
+</script>
+</body>
+</html>
