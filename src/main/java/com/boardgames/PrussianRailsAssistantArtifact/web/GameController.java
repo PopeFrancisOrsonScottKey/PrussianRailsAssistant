@@ -12,8 +12,9 @@ import java.util.Optional;
 
 @RestController
 public class GameController {
-    private final List<Player> players = new ArrayList<>();
-    private static final List<RailRoad> railRoads = new ArrayList<>();
+    private List<Player> players = new ArrayList<>();
+    private List<RailRoad> railRoads;
+    private final List<RailRoad> railRoadsOriginal = new ArrayList<>();
 
     public GameController() {
         RailRoad preu = new RailRoad(0, "Preußische Ostbahn", 3, "Black", "May build up to 4 track; 20 black track; Königsberg start");
@@ -24,7 +25,21 @@ public class GameController {
         RailRoad badi = new RailRoad(5, "Badische", 1, "Red", "One free rural track/build; 15 red track; Mannheim start");
         RailRoad koln = new RailRoad(6, "Köln-Mindener", 1, "Purple", "$5 maximum expediture/build; 12 purple track; Essen star");
         RailRoad berl = new RailRoad(7, "Berlin-Hamburger", 1, "Green", "Must connect both to receive Dividends; 13 green track; Wittenberge start");
-        railRoads.addAll(List.of(preu, nied, sach, baye, main, badi, koln, berl));
+        railRoadsOriginal.addAll(List.of(preu, nied, sach, baye, main, badi, koln, berl));
+        railRoads = new ArrayList<>();
+        for (RailRoad railRoad : railRoadsOriginal) {
+            RailRoad copy = new RailRoad(railRoad.getId(), railRoad.getName(), railRoad.getValue(), railRoad.getColor(), railRoad.getDescription());
+            railRoads.add(copy);
+        }
+    }
+
+    @PostMapping("/reset")
+    public void reset() {
+        System.out.println("resetting");
+        railRoads = new ArrayList<>(railRoadsOriginal);
+        players = new ArrayList<>();
+        System.out.println("Railroads: " + railRoads);
+        System.out.println("Players: " + players);
     }
 
     @PostMapping("/players")
@@ -32,11 +47,12 @@ public class GameController {
         for (String player : playerNames) {
             players.add(new Player(player, new ArrayList<>()));
         }
-        System.out.println("added players");
+        System.out.println("added players " + playerNames);
     }
 
     @GetMapping("/players")
     public List<Player> getPlayers() {
+        System.out.println("fetching players: " + players);
         return players;
     }
 

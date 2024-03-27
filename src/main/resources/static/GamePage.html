@@ -50,7 +50,7 @@
 </table>
 <br>
 <h1>RailRoad Information</h1>
-<table>
+<table id="rail-road-info">
     <thead>
     <tr>
         <th>Color</th>
@@ -65,9 +65,36 @@
     <!-- Insert table rows dynamically using JavaScript -->
     </tbody>
 </table>
+<br>
+<button onclick="reset()">Reset</button>
 
 <script>
+    function reset() {
+        fetch("/reset", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).catch(error => console.log(`Error when resetting: ${error}`));
+        const railRoadRowElements = document.querySelectorAll('#rail-road-info tbody tr');
+        const playerRowElements = document.querySelectorAll('#player-table tbody tr');
+        railRoadRowElements.forEach(row => {
+            // Remove all child td elements from the current row
+            while (row.firstChild) {
+                row.removeChild(row.firstChild);
+            }
+        });
+        playerRowElements.forEach(row => {
+            // Remove all child td elements from the current row
+            while (row.firstChild) {
+                row.removeChild(row.firstChild);
+            }
+        });
+        window.location.href = '/Players.html';
+    }
+
     function fetchPlayers() {
+        console.log('fetching players');
         fetch('/players')
             .then(response => {
                 if (!response.ok) {
@@ -183,7 +210,7 @@
                         <td><div class="color-block" style="background-color: ${railRoad.color};"></div></td>
                         <td>${railRoad.name}</td>
                         <td>${railRoad.description}</td>
-                        <td><input type="text" name="railroad_${railRoad.id}" id="railroad_${railRoad.id}" value="${railRoad.value}" oninput="updateRailRoadValue(${railRoad.id}, this.value)"></td>
+                        <td><input type="number" name="railroad_${railRoad.id}" id="railroad_${railRoad.id}" value="${railRoad.value}" oninput="updateRailRoadValue(${railRoad.id}, this.value)"></td>
                         <td><input type="number" class="new-connections" name="number_${railRoad.id}" id="number_${railRoad.id}" value="1"></td>
                         <td><button onclick="connect(${railRoad.id}, document.getElementById('number_${railRoad.id}').value)">Connect</button></td>
                     `;
