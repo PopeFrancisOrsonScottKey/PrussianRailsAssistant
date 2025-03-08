@@ -11,4 +11,6 @@ public class RailRoad {
     private Integer value;
     private String color;
     private String description;
+    private String custom;
+    private Boolean checked;
 }
