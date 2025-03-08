@@ -43,9 +43,8 @@ public class GameController {
 
     @RequestMapping("/")
     public ResponseEntity<String> homePage() {
-        System.out.println("hit");
         HttpHeaders headers = new HttpHeaders();
-        headers.add(LOCATION, "/Players.html");
+        headers.add(LOCATION, "/players.html");
         return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
     }
 
@@ -103,7 +102,6 @@ public class GameController {
         .filter(railRoad -> Objects.equals(railRoad.getId(), railRoadId))
         .findFirst();
         railRoadOptional.ifPresent(railRoad -> railRoad.setValue(value));
-        System.out.println("hit " + railRoadId + ": " + value);
         return ResponseEntity.ok().build();
     }
 
@@ -111,7 +109,6 @@ public class GameController {
     @ResponseBody
     public ResponseEntity<List<PlayerConnectScore>> connectRailRoads(@RequestParam Integer railRoadId,
                                                      @RequestParam Integer numberOfNewConnections) {
-        System.out.println("railRoadId: " + railRoadId + " connections: " + numberOfNewConnections);
         List<PlayerConnectScore> playerConnectScores = new ArrayList<>();
         PlayerConnectScore playerConnectScore;
         for (Player player : players) {
@@ -128,7 +125,6 @@ public class GameController {
             }
             playerConnectScores.add(playerConnectScore);
         }
-        System.out.println(playerConnectScores);
         return ResponseEntity.ok().body(playerConnectScores);
     }
 
